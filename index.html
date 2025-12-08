@@ -1,0 +1,669 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>CultureCompass | Premium Tours</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
+  <style>
+    /* --- RENK PALETİ --- */
+    :root {
+      --primary: #0f172a;
+      --accent: #c6a87c;
+      --accent-hover: #b09160;
+      --bg: #f8f9fa;
+      --card-bg: #ffffff;
+      --text: #334155;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --danger: #e63946;
+      --shadow: rgba(0,0,0,0.05);
+      --glass: rgba(255,255,255,0.9);
+    }
+
+    [data-theme="dark"] {
+      --primary: #f1f5f9;
+      --accent: #d4b483;
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #cbd5e1;
+      --text-light: #94a3b8;
+      --border: #334155;
+      --shadow: rgba(0,0,0,0.3);
+      --glass: rgba(30, 41, 59, 0.9);
+    }
+
+    * { box-sizing: border-box; transition: background-color 0.3s, color 0.3s, border-color 0.3s; }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    h1, h2, h3, h4, .brand-font {
+      font-family: 'Playfair Display', serif;
+      color: var(--primary);
+    }
+
+    /* HEADER */
+    header {
+      background: var(--card-bg);
+      box-shadow: 0 4px 20px var(--shadow);
+      position: sticky; top: 0; z-index: 100;
+    }
+    .navbar {
+      max-width: 1200px; margin: 0 auto; padding: 15px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .brand-logo { font-size: 24px; color: var(--accent); }
+    .brand-name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--primary); }
+    
+    .nav-actions { display: flex; gap: 20px; align-items: center; }
+    .nav-links { display: flex; gap: 20px; }
+    .nav-links a {
+      text-decoration: none; color: var(--text); font-weight: 500; font-size: 14px;
+      text-transform: uppercase; letter-spacing: 1px; transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--accent); }
+
+    .controls { display: flex; gap: 8px; align-items: center; border-left: 1px solid var(--border); padding-left: 20px; }
+    .lang-btn {
+      background: none; border: 1px solid var(--border); color: var(--text); 
+      cursor: pointer; font-size: 0.8rem; padding: 5px 10px; border-radius: 4px; font-weight: 600;
+    }
+    .lang-btn:hover { background: var(--bg); color: var(--accent); }
+    .lang-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+    .theme-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; }
+
+    /* HERO */
+    .hero {
+      position: relative; height: 75vh;
+      background: linear-gradient(rgba(15, 23, 42, 0.5), rgba(15, 23, 42, 0.6)), url('https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=1920&auto=format&fit=crop');
+      background-size: cover; background-position: center;
+      display: flex; align-items: center; justify-content: center; text-align: center; color: #ffffff; padding: 20px;
+    }
+    .hero h1 { color: #ffffff; font-size: clamp(3rem, 6vw, 5rem); margin: 0; font-style: italic; }
+    .hero p { color: #f1f5f9; font-size: 1.2rem; max-width: 600px; margin: 20px auto; opacity: 0.95; font-weight: 300; }
+    .btn-hero {
+      background: var(--accent); color: #fff; padding: 15px 40px; text-decoration: none;
+      font-weight: 600; text-transform: uppercase; letter-spacing: 2px; border-radius: 50px;
+      display: inline-block; transition: all 0.3s;
+    }
+    .btn-hero:hover { background: #fff; color: #0f172a; transform: translateY(-3px); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 80px 20px; }
+    .section-title { text-align: center; font-size: 2.5rem; color: var(--primary); margin-bottom: 50px; }
+    .section-title span { color: var(--accent); font-style: italic; }
+
+    /* ABOUT */
+    .about-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+    .about-text h3 { font-size: 2rem; margin-top: 0; color: var(--primary); }
+    .about-text p { color: var(--text-light); margin-bottom: 20px; font-size: 1.05rem; }
+    .about-img-wrapper { width: 100%; height: 100%; min-height: 400px; position: relative; }
+    .about-img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; box-shadow: 20px 20px 0px var(--accent); }
+
+    /* TOURS */
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 30px; }
+    .card {
+      background: var(--card-bg); border-radius: 12px; overflow: hidden;
+      box-shadow: 0 10px 30px var(--shadow); transition: transform 0.3s;
+      display: flex; flex-direction: column; border: 1px solid var(--border);
+    }
+    .card:hover { transform: translateY(-5px); }
+    .card-img-container { position: relative; height: 250px; overflow: hidden; }
+    .card-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .card:hover .card-img { transform: scale(1.05); }
+    .badge {
+      position: absolute; top: 15px; right: 15px; background: var(--glass);
+      padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 700;
+      color: #0f172a; text-transform: uppercase;
+    }
+    .card-body { padding: 25px; flex-grow: 1; display: flex; flex-direction: column; }
+    .card-meta { color: var(--accent); font-size: 0.9rem; font-weight: 600; margin-bottom: 15px; }
+    .card-footer { border-top: 1px solid var(--border); padding-top: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .price { font-size: 1.4rem; font-weight: 700; color: var(--primary); font-family: 'Playfair Display', serif; }
+    .seats-info { font-size: 0.85rem; color: var(--text-light); }
+    .btn { background: var(--primary); color: var(--card-bg); border: none; padding: 12px 24px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: 0.3s; }
+    .btn:hover { background: var(--accent); color: #fff; }
+    .btn:disabled { background: var(--border); color: var(--text-light); cursor: not-allowed; }
+    .card.sold-out { opacity: 0.7; }
+    .card.sold-out .badge { background: var(--danger); color: white; }
+
+    /* GUIDES */
+    .guides-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 40px; max-width: 900px; margin: 0 auto; }
+    .guide-card { text-align: center; background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px var(--shadow); border: 1px solid var(--border); }
+    .guide-img { width: 100%; height: 350px; object-fit: cover; filter: grayscale(20%); transition: 0.3s; }
+    .guide-card:hover .guide-img { filter: grayscale(0%); }
+    .guide-info { padding: 25px; }
+    .guide-role { color: var(--accent); font-weight: 600; font-size: 0.85rem; text-transform: uppercase; margin: 10px 0; }
+
+    /* GALLERY, MAP, FAQ, REVIEWS */
+    .map-container { width: 100%; height: 400px; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px var(--shadow); margin-top: 50px; }
+    iframe { width: 100%; height: 100%; border: 0; filter: grayscale(20%); }
+    
+    .gallery-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+    .gallery-item { position: relative; border-radius: 12px; overflow: hidden; height: 300px; box-shadow: 0 5px 15px var(--shadow); }
+    .gallery-img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s; }
+    .gallery-item:hover .gallery-img { transform: scale(1.1); }
+    .gallery-caption { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); color: white; padding: 20px; opacity: 0; transition: 0.3s; font-family: 'Playfair Display', serif; font-size: 1.2rem; }
+    .gallery-item:hover .gallery-caption { opacity: 1; }
+    
+    .faq-item { background: var(--card-bg); border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 10px var(--shadow); border: 1px solid var(--border); }
+    details { padding: 20px; cursor: pointer; }
+    summary { font-weight: 600; color: var(--primary); list-style: none; display: flex; justify-content: space-between; }
+    
+    .testimonial-card { background: var(--card-bg); padding: 30px; border-radius: 12px; border: 1px solid var(--border); }
+    .stars { color: var(--accent); font-size: 1.2rem; margin-bottom: 15px; }
+
+    /* NEWSLETTER & SOCIAL */
+    .newsletter { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: white; padding: 60px 20px; text-align: center; border-radius: 20px; margin-bottom: 60px; }
+    .newsletter h2 { color: white; }
+    .newsletter-form { max-width: 500px; margin: 30px auto 0; display: flex; gap: 10px; }
+    .newsletter input { flex: 1; padding: 15px; border-radius: 50px; border: none; }
+    .btn-news { background: var(--accent); color: white; border: none; padding: 15px 30px; border-radius: 50px; font-weight: 700; cursor: pointer; }
+    
+    .social-links { display: flex; gap: 15px; margin-top: 20px; }
+    .social-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; color: var(--primary); transition: 0.3s; text-decoration: none; }
+    .social-btn:hover { background: var(--accent); color: white; transform: translateY(-3px); }
+    .social-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    
+    footer { background: #0f172a; color: #94a3b8; padding: 60px 20px; text-align: center; }
+    footer h4 { color: white; margin-bottom: 10px; }
+
+    /* MODAL */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 1000; }
+    .modal { background: var(--card-bg); width: 100%; max-width: 600px; border-radius: 16px; padding: 40px; max-height: 90vh; overflow-y: auto; }
+    .modal h3 { color: var(--primary); }
+    .form-group label { color: var(--text); display: block; margin-bottom: 8px; font-size: 0.9rem; font-weight: 600; }
+    select, input { width: 100%; padding: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); border-radius: 8px; font-size: 1rem; }
+    .person-card { background: var(--bg); border: 1px solid var(--border); padding: 20px; border-radius: 8px; margin-bottom: 15px; }
+    .person-card h4 { color: var(--text-light); }
+    .btn-confirm { width: 100%; background: var(--accent); color: white; padding: 15px; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; margin-top: 20px; }
+    .btn-cancel { width: 100%; background: transparent; color: var(--text-light); padding: 15px; border: none; cursor: pointer; margin-top: 10px; }
+
+    @media (max-width: 768px) {
+      .nav-links { display: none; }
+      .hero h1 { font-size: 2.5rem; }
+      .about-grid, .grid, .newsletter-form, .gallery-grid, .guides-grid { grid-template-columns: 1fr; column-count: 1; flex-direction: column; }
+      .about-img-wrapper { min-height: 300px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="navbar">
+      <a href="#" class="brand">
+        <span class="brand-logo">✦</span>
+        <span class="brand-name brand-font">CultureCompass</span>
+      </a>
+      
+      <div class="nav-actions">
+        <div class="nav-links">
+          <a href="#about" data-i18n="nav.about">About</a>
+          <a href="#tours" data-i18n="nav.tours">Tours</a>
+          <a href="#contact" data-i18n="nav.contact">Contact</a>
+        </div>
+        
+        <div class="controls">
+          <button class="lang-btn active" onclick="setLang('en')">EN</button>
+          <button class="lang-btn" onclick="setLang('hu')">HU</button>
+          <button class="lang-btn" onclick="setLang('tr')">TR</button>
+          <button class="theme-btn" onclick="toggleTheme()" id="themeIcon">🌙</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="hero">
+    <div class="hero-content">
+      <h1 data-i18n="hero.title">Don't just visit. Live it.</h1>
+      <p data-i18n="hero.subtitle">Curated small-group journeys for travelers who seek the soul of a destination. We open doors that are usually closed.</p>
+      <a href="#tours" class="btn-hero" data-i18n="hero.btn">Find Your Journey</a>
+    </div>
+  </div>
+
+  <div class="container" id="about">
+    <div class="about-grid">
+      <div class="about-text">
+        <h2 class="brand-font" style="font-size: 1rem; color: var(--accent); text-transform: uppercase; letter-spacing: 2px;" data-i18n="about.label">Our Story</h2>
+        <h3 data-i18n="about.title">We Craft Memories, Not Just Itineraries.</h3>
+        <p data-i18n="about.text1">Founded in 2020 by a group of passionate historians and travel experts, CultureCompass was born from a simple idea: Travel should be transformative.</p>
+        <p data-i18n="about.text2">Our mission is to connect you with the local heartbeat of every city. Authenticity over volume.</p>
+        <div class="about-stats">
+          <div class="stat-item"><h4>50+</h4><span data-i18n="stats.dest">Destinations</span></div>
+          <div class="stat-item"><h4>2k+</h4><span data-i18n="stats.travelers">Happy Travelers</span></div>
+          <div class="stat-item"><h4>4.9</h4><span data-i18n="stats.rating">Star Rating</span></div>
+        </div>
+      </div>
+      <div class="about-img-wrapper">
+        <img src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?q=80&w=800&auto=format&fit=crop" class="about-img" alt="Our Team">
+      </div>
+    </div>
+  </div>
+
+  <div class="container" id="tours" style="background-color: var(--bg);">
+    <h2 class="section-title"><span data-i18n="tours.title1">Exclusive</span> <span data-i18n="tours.title2" style="color: var(--primary)">Collections</span></h2>
+    
+    <div class="grid">
+      <article class="card" data-tour-id="milan-2026">
+        <div class="card-img-container">
+          <span class="badge" data-i18n="badge.days">5 Days</span>
+          <img src="https://images.unsplash.com/photo-1549880338-65ddcdfd017b?q=80&w=800&auto=format&fit=crop" class="card-img" alt="Milan">
+        </div>
+        <div class="card-body">
+          <h3>Milan: Taste & Hidden Gems</h3>
+          <div class="card-meta">Mar 4–8, 2026 • 25 Pax</div>
+          <p data-i18n="tour.milan.desc">An exclusive journey through Northern Italy. Private access to Duomo terraces and Como boat tour.</p>
+          <div class="card-footer">
+            <div>
+              <div class="price">€449</div>
+              <div class="seats-info"><span data-i18n="seats.available">Available:</span> <b class="seats-count">...</b></div>
+            </div>
+            <button class="btn book-now" data-i18n="btn.book">Book Now</button>
+          </div>
+        </div>
+      </article>
+
+      <article class="card" data-tour-id="turin-2026">
+        <div class="card-img-container">
+          <span class="badge" data-i18n="badge.waitlist">Waitlist Only</span>
+          <img src="https://images.unsplash.com/photo-1596443690664-d6e2c88f3469?q=80&w=800&auto=format&fit=crop" class="card-img" alt="Turin">
+        </div>
+        <div class="card-body">
+          <h3>Turin: The Royal Experience</h3>
+          <div class="card-meta">Apr 10–14, 2026 • 25 Pax</div>
+          <p data-i18n="tour.turin.desc">Walk the path of Kings. Visit the Egyptian Museum, Royal Palace, and enjoy the finest chocolates.</p>
+          <div class="card-footer">
+            <div>
+              <div class="price">€529</div>
+              <div class="seats-info"><span data-i18n="seats.available">Available:</span> <b class="seats-count">...</b></div>
+            </div>
+            <button class="btn book-now" data-i18n="btn.book">Book Now</button>
+          </div>
+        </div>
+      </article>
+    </div>
+
+    <div class="map-container">
+      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d179069.97026777174!2d9.030571990425026!3d45.46270477810777!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x4786c1493f1275e7%3A0x3cffcd13c6740e8d!2sMilan%2C%20Metropolitan%20City%20of%20Milan%2C%20Italy!5e0!3m2!1sen!2str!4v1709923842103!5m2!1sen!2str" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title"><span data-i18n="gallery.title1">Moments</span> <span data-i18n="gallery.title2" style="color: var(--primary)">Captured</span></h2>
+    <div class="gallery-grid">
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1516483638261-f4dbaf036963?w=600&q=80" class="gallery-img"><div class="gallery-caption">Cinque Terre</div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1498503182468-3b51cbb6cb24?w=600&q=80" class="gallery-img"><div class="gallery-caption">Venice</div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=600&q=80" class="gallery-img"><div class="gallery-caption">Resorts</div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1534234828563-02511c15b672?w=600&q=80" class="gallery-img"><div class="gallery-caption">Tasting</div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1499678329028-101435549a4e?w=600&q=80" class="gallery-img"><div class="gallery-caption">Tuscany</div></div>
+      <div class="gallery-item"><img src="https://images.unsplash.com/photo-1555992336-fb0d29498b13?w=600&q=80" class="gallery-img"><div class="gallery-caption">Culinary</div></div>
+    </div>
+  </div>
+
+  <div class="container" id="guides">
+    <h2 class="section-title"><span data-i18n="guides.title">Meet Your Experts</span></h2>
+    <div class="guides-grid">
+      <div class="guide-card">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop" class="guide-img">
+        <div class="guide-info"><h3>Bora Şenel</h3><div class="guide-role">Head Guide</div></div>
+      </div>
+      <div class="guide-card">
+        <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=800&auto=format&fit=crop" class="guide-img">
+        <div class="guide-info"><h3>Elena Rossi</h3><div class="guide-role">Historian</div></div>
+      </div>
+      <div class="guide-card">
+        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=800&auto=format&fit=crop" class="guide-img">
+        <div class="guide-info"><h3>Marcus Weber</h3><div class="guide-role">Adventure</div></div>
+      </div>
+      <div class="guide-card">
+        <img src="https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=800&auto=format&fit=crop" class="guide-img">
+        <div class="guide-info"><h3>Sarah Johnson</h3><div class="guide-role">Concierge</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container" style="background-color: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;">
+    <h2 class="section-title"><span data-i18n="reviews.title">Traveler Stories</span></h2>
+    <div class="grid">
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="review-text" data-i18n="review.1">"The boat tour in Como was absolutely magical. I've never seen Italy like this before."</p>
+        <div class="reviewer">Jessica M.</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="review-text" data-i18n="review.2">"The hotel was central, the risotto was delicious, and the group size was just right."</p>
+        <div class="reviewer">David Chen</div>
+      </div>
+      <div class="testimonial-card">
+        <div class="stars">★★★★★</div>
+        <p class="review-text" data-i18n="review.3">"As a solo traveler, I was nervous, but the guides made everyone feel like family."</p>
+        <div class="reviewer">Sarah K.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2 class="section-title">FAQ</h2>
+    <div style="max-width: 800px; margin: 0 auto;">
+      <div class="faq-item">
+        <details>
+          <summary>Is the flight included?</summary>
+          <p style="padding: 15px; color: var(--text-light);">Yes, direct flights via Wizz Air and checked baggage are included.</p>
+        </details>
+      </div>
+      <div class="faq-item">
+        <details>
+          <summary>What about cancellation?</summary>
+          <p style="padding: 15px; color: var(--text-light);">Full refund up to 30 days before departure.</p>
+        </details>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="newsletter">
+      <h2 class="brand-font" data-i18n="news.title">Join the Club</h2>
+      <p style="opacity: 0.9;" data-i18n="news.subtitle">Subscribe to get early access to our new tours and exclusive discounts.</p>
+      <form id="newsletter-form" class="newsletter-form">
+        <input type="email" id="news-email" placeholder="Your Email Address" required>
+        <button type="submit" class="btn-news" data-i18n="btn.sub">Subscribe</button>
+      </form>
+      <p id="news-msg" style="margin-top: 10px; font-size: 0.9rem;"></p>
+    </div>
+  </div>
+
+  <div class="container" id="contact">
+    <div class="contact-section" style="background: var(--card-bg); border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px var(--shadow);">
+      <div class="grid" style="grid-template-columns: 1fr 1fr; align-items: center;">
+        <div style="padding: 40px;">
+          <h2 class="brand-font" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 20px;" data-i18n="contact.title">Contact Concierge</h2>
+          <p style="color: var(--text-light); margin-bottom: 30px;" data-i18n="contact.text">Ready to book your next adventure?</p>
+          <div style="margin-bottom: 10px;"><strong>Email:</strong> concierge@culturecompass.com</div>
+          <div><strong>Phone:</strong> +36 20 123 4567</div>
+          
+          <div class="social-links">
+            <a href="#" class="social-btn" title="Instagram">
+              <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="#" class="social-btn" title="Facebook">
+              <svg viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
+            </a>
+            <a href="#" class="social-btn" title="TikTok">
+              <svg viewBox="0 0 24 24"><path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93v6.16c0 2.52-1.12 4.84-2.9 6.24-1.72 1.36-4.03 1.86-6.23 1.31-2.18-.54-4.09-2.24-4.88-4.36-.78-2.11-.32-4.52 1.15-6.19 1.47-1.66 3.8-2.31 5.95-1.67v4.12c-1.29-.65-2.91-.23-3.81.99-.9.1.22-1.69 1.49-.78 2.87 1.81 2.37 4.19.78 4.24-2.83 0-1.11-.01-2.22-.01-3.32-.01-3.82.01-7.64.01-11.45z"/></svg>
+            </a>
+          </div>
+
+        </div>
+        <div style="height: 100%; min-height: 350px; background: url('https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=800&auto=format&fit=crop') center/cover;"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="container" style="padding: 0;">
+      <h4 class="brand-font">CultureCompass</h4>
+      <p data-i18n="footer.text">© 2026 CultureCompass Travel. Curated with passion.</p>
+    </div>
+  </footer>
+
+  <a href="https://wa.me/36201234567" target="_blank" style="position: fixed; bottom: 25px; right: 25px; background: #25D366; color: white; width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 9999;">
+    <svg viewBox="0 0 24 24" width="32" height="32" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+  </a>
+
+  <div id="modal" class="modal-backdrop">
+    <div class="modal">
+      <h3>Secure Your Seat</h3>
+      <div id="modal-info" class="modal-subtitle">Loading...</div>
+      <form id="booking-form">
+        <div class="form-group">
+          <label>Number of Travelers</label>
+          <select id="person-count">
+            <option value="1">1 Person</option>
+            <option value="2">2 People</option>
+            <option value="3">3 People</option>
+            <option value="4">4 People</option>
+          </select>
+        </div>
+        <div id="persons-container"></div>
+        <div id="form-msg" style="text-align: center; margin-top: 15px; font-weight: 600;"></div>
+        <div class="modal-actions">
+          <button type="submit" class="btn-confirm">Confirm Booking</button>
+          <button type="button" id="cancel-btn" class="btn-cancel">Cancel</button>
+        </div>
+        <input type="hidden" id="tour-id">
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. SUPABASE AYARLARI ---
+    const SUPABASE_URL = 'https://xulquttfhjjzjzbdvkhz.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_LG9_GBCK4NaiR-ocxsqBBw_eeVN0hZ1';
+    
+    let supabase;
+    try {
+      supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (e) { console.error(e); }
+
+    // --- 2. MULTI-LANGUAGE (i18n) ---
+    const translations = {
+      en: {
+        "nav.about": "About", "nav.tours": "Tours", "nav.contact": "Contact",
+        "hero.title": "Don't just visit. Live it.",
+        "hero.subtitle": "Curated small-group journeys for travelers who seek the soul of a destination.",
+        "hero.btn": "Find Your Journey",
+        "about.label": "Our Story", "about.title": "We Craft Memories, Not Just Itineraries.",
+        "about.text1": "Founded in 2020 by passionate historians, CultureCompass was born from a simple idea: Travel should be transformative.",
+        "about.text2": "Authenticity over volume. We connect you with the local heartbeat.",
+        "stats.dest": "Destinations", "stats.travelers": "Happy Travelers", "stats.rating": "Star Rating",
+        "tours.title1": "Exclusive", "tours.title2": "Collections",
+        "badge.days": "5 Days", "badge.waitlist": "Waitlist Only",
+        "tour.milan.desc": "An exclusive journey through Northern Italy. Private access to Duomo terraces and Como boat tour.",
+        "tour.turin.desc": "Walk the path of Kings. Visit the Egyptian Museum, Royal Palace, and enjoy the finest chocolates.",
+        "seats.available": "Available:", "btn.book": "Book Now",
+        "gallery.title1": "Moments", "gallery.title2": "Captured",
+        "guides.title": "Meet Your Experts",
+        "reviews.title": "Traveler Stories",
+        "review.1": "\"The boat tour in Como was absolutely magical. I've never seen Italy like this before.\"",
+        "review.2": "\"The hotel was central, the risotto was delicious, and the group size was just right.\"",
+        "review.3": "\"As a solo traveler, I was nervous, but the guides made everyone feel like family.\"",
+        "news.title": "Join the Club", "news.subtitle": "Subscribe to get early access to our new tours and exclusive discounts.",
+        "btn.sub": "Subscribe",
+        "contact.title": "Contact Concierge", "contact.text": "Ready to book your next adventure?",
+        "footer.text": "© 2026 CultureCompass Travel. Curated with passion."
+      },
+      hu: {
+        "nav.about": "Rólunk", "nav.tours": "Túrák", "nav.contact": "Kapcsolat",
+        "hero.title": "Ne csak látogassa. Élje át.",
+        "hero.subtitle": "Kiscsoportos utazások azoknak, akik az úti cél lelkét keresik.",
+        "hero.btn": "Utazás Keresése",
+        "about.label": "Történetünk", "about.title": "Emlékeket alkotunk, nem csak útvonalakat.",
+        "about.text1": "A CultureCompass-t 2020-ban alapítottuk azzal a céllal, hogy az utazás átalakító élmény legyen.",
+        "about.text2": "A hitelesség a mennyiség felett. Összekötjük a helyi kultúrával.",
+        "stats.dest": "Úti cél", "stats.travelers": "Boldog Utazó", "stats.rating": "Értékelés",
+        "tours.title1": "Exkluzív", "tours.title2": "Kollekciók",
+        "badge.days": "5 Nap", "badge.waitlist": "Várólista",
+        "tour.milan.desc": "Exkluzív utazás Észak-Olaszországban. Privát Duomo terasz és Como hajókázás.",
+        "tour.turin.desc": "Királyok útja. Egyiptomi Múzeum, Királyi Palota és a legjobb csokoládék.",
+        "seats.available": "Elérhető:", "btn.book": "Foglalás",
+        "gallery.title1": "Megörökített", "gallery.title2": "Pillanatok",
+        "guides.title": "Szakértőink",
+        "reviews.title": "Utazói Történetek",
+        "review.1": "\"A hajóút Comóban varázslatos volt. Soha nem láttam még ilyennek Olaszországot.\"",
+        "review.2": "\"A szálloda központi volt, a rizottó finom, a csoportméret pedig pont megfelelő.\"",
+        "review.3": "\"Egyedül utazóként izgultam, de az idegenvezetők miatt családban éreztem magam.\"",
+        "news.title": "Csatlakozzon", "news.subtitle": "Iratkozzon fel a korai hozzáférésért és exkluzív kedvezményekért.",
+        "btn.sub": "Feliratkozás",
+        "contact.title": "Kapcsolat", "contact.text": "Készen áll a következő kalandra?",
+        "footer.text": "© 2026 CultureCompass Travel. Szenvedéllyel válogatva."
+      },
+      tr: {
+        "nav.about": "Hakkımızda", "nav.tours": "Turlar", "nav.contact": "İletişim",
+        "hero.title": "Sadece gezmeyin. Yaşayın.",
+        "hero.subtitle": "Bir yerin ruhunu arayan gezginler için özel kürate edilmiş butik turlar.",
+        "hero.btn": "Turunu Seç",
+        "about.label": "Hikayemiz", "about.title": "Sadece Rota Değil, Anı Tasarlıyoruz.",
+        "about.text1": "2020'de kurulan CultureCompass, seyahatin dönüştürücü olması gerektiği fikrinden doğdu.",
+        "about.text2": "Nicelikten çok nitelik. Sizi şehrin yerel kalbiyle buluşturuyoruz.",
+        "stats.dest": "Destinasyon", "stats.travelers": "Mutlu Gezgin", "stats.rating": "Puan",
+        "tours.title1": "Özel", "tours.title2": "Koleksiyonlar",
+        "badge.days": "5 Gün", "badge.waitlist": "Bekleme Listesi",
+        "tour.milan.desc": "Kuzey İtalya'da seçkin bir yolculuk. Duomo terasına özel erişim ve Como tekne turu.",
+        "tour.turin.desc": "Kralların yolunda yürüyün. Mısır Müzesi, Kraliyet Sarayı ve en iyi çikolatalar.",
+        "seats.available": "Kalan:", "btn.book": "Rezervasyon Yap",
+        "gallery.title1": "Yakalanan", "gallery.title2": "Anlar",
+        "guides.title": "Uzmanlarımız",
+        "reviews.title": "Gezgin Hikayeleri",
+        "review.1": "\"Como'daki tekne turu büyüleyiciydi. İtalya'yı daha önce hiç böyle görmemiştim.\"",
+        "review.2": "\"Otel merkeziydi, risotto harikaydı ve grup büyüklüğü tam kıvamındaydı.\"",
+        "review.3": "\"Yalnız seyahat eden biri olarak gergindim ama rehberler aile gibi hissettirdi.\"",
+        "news.title": "Kulübe Katılın", "news.subtitle": "Yeni turlar ve özel indirimlerden haberdar olmak için abone olun.",
+        "btn.sub": "Abone Ol",
+        "contact.title": "İletişime Geçin", "contact.text": "Bir sonraki maceranıza hazır mısınız?",
+        "footer.text": "© 2026 CultureCompass Travel. Tutkuyla hazırlandı."
+      }
+    };
+
+    function setLang(lang) {
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (translations[lang][key]) el.innerText = translations[lang][key];
+      });
+      document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
+    // --- 3. DARK MODE ---
+    function toggleTheme() {
+      const html = document.documentElement;
+      const current = html.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      document.getElementById('themeIcon').innerText = next === 'dark' ? '☀️' : '🌙';
+    }
+
+    // --- 4. SUPABASE & BOOKING LOGIC ---
+    async function fetchSeats(tourId) {
+      if (!supabase) return null;
+      const { data, error } = await supabase.from('tours').select('*').eq('id', tourId).single();
+      if (error || !data) return null;
+      return { available: data.total_seats - data.reserved_seats, title: data.title };
+    }
+
+    async function refreshAllSeats() {
+      const cards = document.querySelectorAll('[data-tour-id]');
+      for (const card of cards) {
+        const tourId = card.getAttribute('data-tour-id');
+        const seatsEl = card.querySelector('.seats-count');
+        const btn = card.querySelector('.book-now');
+        const badge = card.querySelector('.badge');
+        
+        const data = await fetchSeats(tourId);
+        if (data) {
+          if (data.available <= 0) {
+            seatsEl.textContent = "Full"; seatsEl.style.color = "var(--danger)";
+            btn.disabled = true; btn.textContent = "Sold Out";
+            card.classList.add('sold-out'); 
+            if(badge) { badge.textContent = "SOLD OUT"; badge.style.background = "var(--danger)"; badge.style.color = "white"; }
+          } else {
+            seatsEl.textContent = data.available; seatsEl.style.color = "var(--text)";
+            btn.disabled = false; btn.textContent = "Book Now"; 
+            card.classList.remove('sold-out');
+          }
+        }
+      }
+    }
+
+    // --- NEWSLETTER ---
+    document.getElementById('newsletter-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('news-email').value;
+      const msg = document.getElementById('news-msg');
+      const btn = document.querySelector('.btn-news');
+      
+      btn.disabled = true; btn.textContent = "Joining...";
+      
+      const { error } = await supabase.from('subscribers').insert({ email: email });
+      
+      if(error) {
+        msg.textContent = "Error: Please try again."; msg.style.color = "#ff9999";
+        btn.disabled = false; btn.textContent = "Subscribe";
+      } else {
+        msg.textContent = "Welcome to the club! 🥂"; msg.style.color = "#99ff99";
+        e.target.reset();
+        btn.textContent = "Joined";
+      }
+    });
+
+    // --- MODAL & FORM ---
+    const modalBackdrop = document.getElementById('modal');
+    function openModal(tourId, tourTitle) {
+      modalBackdrop.style.display = "flex";
+      document.getElementById('tour-id').value = tourId;
+      document.getElementById('modal-info').textContent = tourTitle;
+      document.getElementById('person-count').value = '1';
+      document.getElementById('form-msg').textContent = '';
+      buildPersonForms();
+    }
+    function closeModal() { modalBackdrop.style.display = "none"; }
+    
+    function buildPersonForms() {
+      const n = parseInt(document.getElementById('person-count').value);
+      const container = document.getElementById('persons-container');
+      container.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const div = document.createElement('div');
+        div.className = 'person-card';
+        div.innerHTML = `<h4>Guest ${i + 1}</h4><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"><div><label>Name</label><input id="p-name-${i}" required></div><div><label>Passport</label><input id="p-passport-${i}" required></div><div><label>Gender</label><select id="p-gender-${i}"><option>Male</option><option>Female</option></select></div><div><label>Nationality</label><input id="p-nat-${i}" required></div></div>`;
+        container.appendChild(div);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      refreshAllSeats();
+      document.body.addEventListener('click', (e) => {
+        if (e.target.matches('.book-now')) {
+          const card = e.target.closest('[data-tour-id]');
+          openModal(card.getAttribute('data-tour-id'), card.querySelector('h3').textContent);
+        }
+      });
+      document.getElementById('cancel-btn').addEventListener('click', closeModal);
+      document.getElementById('person-count').addEventListener('change', buildPersonForms);
+      
+      document.getElementById('booking-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.querySelector('.btn-confirm');
+        const msg = document.getElementById('form-msg');
+        btn.disabled = true; btn.textContent = "...";
+        
+        const count = parseInt(document.getElementById('person-count').value);
+        const persons = [];
+        for(let i=0; i<count; i++) persons.push({ name: document.getElementById(`p-name-${i}`).value, passport: document.getElementById(`p-passport-${i}`).value, gender: document.getElementById(`p-gender-${i}`).value, nationality: document.getElementById(`p-nat-${i}`).value });
+
+        const { data, error } = await supabase.rpc('book_tour', { p_tour_id: document.getElementById('tour-id').value, p_persons: persons });
+        
+        if (error || (data[0] && data[0].error_text)) {
+          msg.textContent = error ? "Error" : data[0].error_text; msg.style.color = "var(--danger)";
+          btn.disabled = false; btn.textContent = "Confirm";
+        } else {
+          msg.textContent = "Success!"; msg.style.color = "green";
+          refreshAllSeats(); setTimeout(closeModal, 1500); btn.disabled = false; btn.textContent = "Confirm";
+        }
+      });
+    });
+  </script>
+</body>
+</html>
